@@ -1,2 +1,1 @@
-# DAYFLOW Module Placeholder
-# TODO: Implementation pending
+"""Database module package."""
