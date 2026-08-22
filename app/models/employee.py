@@ -1,8 +1,17 @@
+import enum
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
+
+
+class EmploymentStatus(str, enum.Enum):
+    FULL_TIME = "FULL_TIME"
+    PART_TIME = "PART_TIME"
+    CONTRACT = "CONTRACT"
+    INTERN = "INTERN"
+    TERMINATED = "TERMINATED"
 
 
 def utc_now():

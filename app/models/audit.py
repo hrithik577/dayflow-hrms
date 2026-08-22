@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
+from app.models.notification import Notification  # re-export for backwards compatibility
 
 
 def utc_now():

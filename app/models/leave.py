@@ -1,8 +1,19 @@
+import enum
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, Date, DateTime, Float, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
+
+
+class LeaveStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    CANCELLED = "CANCELLED"
+
+
+LeaveRequestStatus = LeaveStatus
 
 
 def utc_now():
