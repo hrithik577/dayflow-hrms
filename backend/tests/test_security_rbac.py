@@ -1,8 +1,29 @@
+import os
+import sys
 import pytest
+
+# Ensure backend directory is in sys.path
+backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
+
 from fastapi.testclient import TestClient
 from app.main import app
+from app.core.database import SessionLocal, engine, Base
+from seed import seed_database
 
 client = TestClient(app)
+
+@pytest.fixture(autouse=True, scope="module")
+def setup_database():
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_database(db)
+    except Exception as e:
+        db.rollback()
+    finally:
+        db.close()
 
 def test_security_rbac_and_ai_guardrails():
     # 1. Login as Employee (Rahul Sharma)
