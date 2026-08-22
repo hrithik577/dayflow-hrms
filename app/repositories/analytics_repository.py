@@ -32,7 +32,6 @@ class AnalyticsRepository:
 
     @staticmethod
     def get_employees_on_leave(db: Session, target_date: date) -> int:
-        # Check attendance table as well as approved leave requests active on date
         leave_att_count = db.query(func.count(Attendance.id)).filter(
             Attendance.date == target_date,
             Attendance.status == "LEAVE"
@@ -81,7 +80,6 @@ class AnalyticsRepository:
             if total_dept_emp == 0:
                 continue
 
-            # Query attendance records joined with employees
             att_counts = db.query(
                 Attendance.status,
                 func.count(Attendance.id)
@@ -110,6 +108,11 @@ class AnalyticsRepository:
             })
 
         return results
+
+    @staticmethod
+    def get_department_late_rate_ranking(db: Session, target_date: date) -> List[Dict[str, Any]]:
+        dept_metrics = AnalyticsRepository.get_department_attendance(db, target_date)
+        return sorted(dept_metrics, key=lambda x: x["late_rate"], reverse=True)
 
     @staticmethod
     def get_attendance_trends(db: Session, days: int = 14) -> List[Dict[str, Any]]:
@@ -149,7 +152,6 @@ class AnalyticsRepository:
 
     @staticmethod
     def get_leave_trends(db: Session) -> List[Dict[str, Any]]:
-        # Group leave requests by month
         records = db.query(
             func.strftime("%Y-%m", LeaveRequest.created_at).label("month"),
             LeaveRequest.status,

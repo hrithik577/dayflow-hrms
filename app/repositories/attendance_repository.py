@@ -1,5 +1,6 @@
 from typing import Optional, List
 from datetime import date, datetime, timezone
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models.attendance import Attendance
 from app.models.ai import AttendanceAnomaly
@@ -75,6 +76,14 @@ class AttendanceRepository:
         db.commit()
         db.refresh(record)
         return record
+
+    @staticmethod
+    def get_monthly_working_hours_sum(db: Session, employee_id: int, year: int, month: int) -> float:
+        records = db.query(Attendance).filter(
+            Attendance.employee_id == employee_id
+        ).all()
+        filtered = [r for r in records if r.date and r.date.year == year and r.date.month == month]
+        return round(sum(r.working_hours or 0.0 for r in filtered), 2)
 
     @staticmethod
     def list_by_employee(

@@ -30,6 +30,16 @@ class EmployeeRepository:
         return employee
 
     @staticmethod
+    def search_by_name(db: Session, query_str: str, limit: int = 20) -> List[Employee]:
+        search_pattern = f"%{query_str}%"
+        return db.query(Employee).options(
+            joinedload(Employee.department),
+            joinedload(Employee.user)
+        ).filter(
+            (Employee.first_name.ilike(search_pattern)) | (Employee.last_name.ilike(search_pattern))
+        ).limit(limit).all()
+
+    @staticmethod
     def list(
         db: Session,
         department_id: Optional[int] = None,

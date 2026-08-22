@@ -1,6 +1,8 @@
 from typing import Optional, List
+from datetime import date
 from sqlalchemy.orm import Session, joinedload
-from app.models.leave import LeaveType, LeaveRequest, LeaveBalance
+from app.models.leave import LeaveType, LeaveRequest, LeaveBalance, LeaveStatus, LeaveRequestStatus
+from app.models.employee import Employee
 
 
 class LeaveRepository:
@@ -37,6 +39,15 @@ class LeaveRepository:
         db.commit()
         db.refresh(request)
         return request
+
+    @staticmethod
+    def check_department_leave_overlap(db: Session, department_id: int, start_date: date, end_date: date) -> int:
+        return db.query(LeaveRequest).join(Employee).filter(
+            Employee.department_id == department_id,
+            LeaveRequest.status == "APPROVED",
+            LeaveRequest.start_date <= end_date,
+            LeaveRequest.end_date >= start_date
+        ).count()
 
     @staticmethod
     def get_leave_request(db: Session, request_id: int) -> Optional[LeaveRequest]:
