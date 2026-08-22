@@ -1,116 +1,69 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../services/authApi';
-import { localDB } from '../services/apiClient';
+import api from '../services/api';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('dayflow_token') || null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Initialize active user
   useEffect(() => {
-    async function initUser() {
-      try {
-        const db = localDB.get();
-        const storedId = localStorage.getItem('dayflow_user_id') || 'EMP-1001';
-        const found = db.employees.find((e) => e.id === storedId) || db.employees[0];
-        setUser(found);
-      } catch (err) {
-        console.error('Failed to load user', err);
-      } finally {
-        setLoading(false);
+    const fetchMe = async () => {
+      if (token) {
+        try {
+          const res = await api.get('/api/auth/me');
+          setUser(res.data);
+        } catch (err) {
+          console.error("Failed to load user profile:", err);
+          logout();
+        }
       }
-    }
-    initUser();
-  }, []);
+      setLoading(false);
+    };
+    fetchMe();
+  }, [token]);
 
   const login = async (email, password) => {
-    setError(null);
-    try {
-      const res = await authApi.login({ email, password });
-      setUser(res.user);
-      localStorage.setItem('dayflow_user_id', res.user.id);
-      return res.user;
-    } catch (err) {
-      setError(err.message || 'Login failed');
-      throw err;
-    }
+    const res = await api.post('/api/auth/login', { email, password });
+    const { access_token, user: userData } = res.data;
+    localStorage.setItem('dayflow_token', access_token);
+    setToken(access_token);
+    setUser(userData);
+    return userData;
   };
 
-  const signup = async (userData) => {
-    setError(null);
-    try {
-      const res = await authApi.signup(userData);
-      setUser(res.user);
-      localStorage.setItem('dayflow_user_id', res.user.id);
-      return res.user;
-    } catch (err) {
-      setError(err.message || 'Signup failed');
-      throw err;
-    }
+  const signup = async (data) => {
+    const res = await api.post('/api/auth/signup', data);
+    const { access_token, user: userData } = res.data;
+    localStorage.setItem('dayflow_token', access_token);
+    setToken(access_token);
+    setUser(userData);
+    return userData;
   };
 
   const logout = async () => {
-    await authApi.logout();
-    const db = localDB.get();
-    // Default back to Alex Morgan (Employee) or null
-    setUser(null);
-    localStorage.removeItem('dayflow_user_id');
-  };
-
-  // One-click persona switcher for evaluators and pair debugging
-  const switchUser = (employeeId) => {
-    const db = localDB.get();
-    const target = db.employees.find((e) => e.id === employeeId);
-    if (target) {
-      setUser(target);
-      localStorage.setItem('dayflow_user_id', target.id);
+    try {
+      if (token) await api.post('/api/auth/logout');
+    } catch (e) {
+      // ignore
+    } finally {
+      localStorage.removeItem('dayflow_token');
+      setToken(null);
+      setUser(null);
     }
   };
 
-  const updateUserProfile = (updatedData) => {
-    const db = localDB.get();
-    const index = db.employees.findIndex((e) => e.id === user.id);
-    if (index !== -1) {
-      db.employees[index] = { ...db.employees[index], ...updatedData };
-      localDB.save(db);
-      setUser(db.employees[index]);
-    }
+  const isRole = (...roles) => {
+    if (!user) return false;
+    return roles.includes(user.role);
   };
-
-  const isAdmin = user?.role === 'ADMIN';
-  const isHR = user?.role === 'HR';
-  const isEmployee = user?.role === 'EMPLOYEE';
-  const isManagement = isAdmin || isHR;
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        login,
-        signup,
-        logout,
-        switchUser,
-        updateUserProfile,
-        isAdmin,
-        isHR,
-        isEmployee,
-        isManagement,
-      }}
-    >
+    <AuthContext.Provider value={{ user, token, loading, login, signup, logout, isRole, setUser }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+export const useAuth = () => useContext(AuthContext);
