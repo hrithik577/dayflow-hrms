@@ -1,8 +1,16 @@
+import enum
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
+
+
+class UserRole(str, enum.Enum):
+    ADMIN = "ADMIN"
+    HR = "HR"
+    EMPLOYEE = "EMPLOYEE"
+    MANAGER = "MANAGER"
 
 
 def utc_now():

@@ -1,8 +1,17 @@
+import enum
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, Date, DateTime, Float, ForeignKey, Index
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
+
+
+class AttendanceStatus(str, enum.Enum):
+    PRESENT = "PRESENT"
+    ABSENT = "ABSENT"
+    HALF_DAY = "HALF_DAY"
+    LEAVE = "LEAVE"
+    LATE = "LATE"
 
 
 def utc_now():
