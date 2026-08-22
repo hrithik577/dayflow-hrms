@@ -3,13 +3,17 @@ import os
 from datetime import date, datetime, timedelta, time
 import random
 
-# Ensure app package is importable
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Ensure backend app package is importable first
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir in sys.path:
+    sys.path.remove(backend_dir)
+sys.path.insert(0, backend_dir)
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 
 from app.core.database import engine, Base, SessionLocal
 from app.core.security import get_password_hash
@@ -18,7 +22,7 @@ from app.models.department import Department
 from app.models.employee import Employee, EmploymentStatus
 from app.models.attendance import Attendance, AttendanceStatus
 from app.models.leave import LeaveType, LeaveRequest, LeaveBalance, LeaveRequestStatus
-from app.models.payroll import Payroll
+from app.models.payroll import Payroll, Document
 from app.models.policy import Policy
 from app.models.audit import AuditLog, Notification
 from app.models.ai import AIInsight, AIEvent, AttendanceAnomaly
@@ -248,6 +252,30 @@ def seed_database():
                     remaining_days=lt.annual_limit - 2
                 )
                 db.add(lb)
+
+            # Assign Sample Documents
+            doc1 = Document(
+                employee_id=emp.id,
+                document_type="CONTRACT",
+                file_name=f"{fn}_{ln}_Employment_Contract.pdf",
+                file_url=f"https://dayflow.internal/docs/{emp_code}_contract.pdf",
+                verification_status="VERIFIED"
+            )
+            doc2 = Document(
+                employee_id=emp.id,
+                document_type="ID_PROOF",
+                file_name=f"{fn}_{ln}_Identity_Passport.pdf",
+                file_url=f"https://dayflow.internal/docs/{emp_code}_passport.pdf",
+                verification_status="VERIFIED"
+            )
+            doc3 = Document(
+                employee_id=emp.id,
+                document_type="TAX",
+                file_name=f"{fn}_{ln}_W4_Tax_Declaration_2026.pdf",
+                file_url=f"https://dayflow.internal/docs/{emp_code}_tax.pdf",
+                verification_status="VERIFIED"
+            )
+            db.add_all([doc1, doc2, doc3])
 
         db.commit()
 

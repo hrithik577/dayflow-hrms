@@ -20,6 +20,7 @@ class AIQueryResponse(BaseModel):
     tool_used: Optional[str] = None
     data_evidence: Optional[Any] = None
     security_reason: Optional[str] = None
+    agent_persona: Optional[str] = None
 
 class AIInsightOut(BaseModel):
     id: int

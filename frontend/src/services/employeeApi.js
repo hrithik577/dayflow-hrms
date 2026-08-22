@@ -140,4 +140,25 @@ export const employeeApi = {
       return { success: true, message: 'Employee deleted' };
     }
   },
+
+  getMyProfile: async () => {
+    try {
+      const res = await apiClient.get('/employees/me');
+      return res.data;
+    } catch (e) {
+      console.warn('Failed to fetch my profile from backend', e);
+      return null;
+    }
+  },
+
+  addDocument: async (employeeId, docData) => {
+    try {
+      const res = await apiClient.post(`/employees/${employeeId}/documents`, docData);
+      return res.data;
+    } catch (e) {
+      console.error('Failed to upload document', e);
+      throw e;
+    }
+  },
 };
+

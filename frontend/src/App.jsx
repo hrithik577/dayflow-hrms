@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { SocketProvider } from './context/SocketContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -18,10 +19,12 @@ import { PayrollPage } from './pages/PayrollPage';
 import { AICopilotPage } from './pages/AICopilotPage';
 import { AIInsightsPage } from './pages/AIInsightsPage';
 import { AuditPage } from './pages/AuditPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 const ProtectedLayout = () => {
   const { user, loading } = useAuth();
   const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (loading) {
     return (
@@ -38,13 +41,20 @@ const ProtectedLayout = () => {
   const isHR = user.role === 'HR' || user.role === 'ADMIN';
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
-      <Navbar onOpenAIChat={() => setAiDrawerOpen(true)} />
+    <div className="min-h-screen bg-slate-950 flex flex-col transition-colors">
+      <Navbar
+        onOpenAIChat={() => setAiDrawerOpen(true)}
+        onToggleMobileMenu={() => setMobileMenuOpen(prev => !prev)}
+      />
       <div className="flex-1 flex overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-slate-950/40">
+        <Sidebar
+          mobileOpen={mobileMenuOpen}
+          onCloseMobile={() => setMobileMenuOpen(false)}
+        />
+        <main className="flex-1 overflow-y-auto bg-slate-950/40 p-3 sm:p-6 transition-colors">
           <Routes>
             <Route path="/" element={isHR ? <AdminDashboard /> : <EmployeeDashboard />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/employees" element={isHR ? <EmployeesPage /> : <Navigate to="/" replace />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/leave" element={<LeavePage />} />
@@ -64,16 +74,18 @@ const ProtectedLayout = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/*" element={<ProtectedLayout />} />
-          </Routes>
-        </Router>
-      </SocketProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <SocketProvider>
+          <Router>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/*" element={<ProtectedLayout />} />
+            </Routes>
+          </Router>
+        </SocketProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

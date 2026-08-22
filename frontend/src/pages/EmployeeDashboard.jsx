@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { StatusBadge } from '../components/StatusBadge';
 import { StatCard } from '../components/StatCard';
-import { LogIn, LogOut, Clock, CalendarDays, DollarSign, Activity, CheckCircle, AlertCircle } from 'lucide-react';
+import { LogIn, LogOut, Clock, CalendarDays, DollarSign, Activity, CheckCircle, User, Bot, ArrowRight } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 
 export const EmployeeDashboard = () => {
@@ -10,6 +11,7 @@ export const EmployeeDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [notes, setNotes] = useState('');
+  const navigate = useNavigate();
 
   const fetchDashboard = async () => {
     try {
@@ -71,11 +73,11 @@ export const EmployeeDashboard = () => {
   const timeline = data?.timeline || [];
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header Greeting */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-100">
             Good day, {emp.name}! 👋
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -94,7 +96,7 @@ export const EmployeeDashboard = () => {
               Today's Attendance Status
             </span>
             <div className="flex items-baseline gap-4">
-              <h2 className="text-3xl font-extrabold text-slate-50">{todaySt.status.replace(/_/g, ' ')}</h2>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-50">{todaySt.status.replace(/_/g, ' ')}</h2>
               {todaySt.check_in && (
                 <span className="text-xs text-slate-400 font-mono">
                   Check-in: <strong className="text-slate-200">{todaySt.check_in}</strong>
@@ -141,9 +143,69 @@ export const EmployeeDashboard = () => {
         </div>
       </div>
 
+      {/* Quick Access Cards (PRD Requirement 3.2.1) */}
+      <div>
+        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+          Quick Access Portal
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <Link to="/profile" className="glass-card rounded-2xl p-4 border border-slate-800 hover:border-blue-500/50 transition-all group flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                <User className="w-4 h-4" />
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors" />
+            </div>
+            <div className="mt-3">
+              <h4 className="text-xs font-bold text-slate-100">My Profile</h4>
+              <p className="text-[10px] text-slate-400 mt-0.5">View & edit details</p>
+            </div>
+          </Link>
+
+          <Link to="/attendance" className="glass-card rounded-2xl p-4 border border-slate-800 hover:border-emerald-500/50 transition-all group flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <Clock className="w-4 h-4" />
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+            </div>
+            <div className="mt-3">
+              <h4 className="text-xs font-bold text-slate-100">My Attendance</h4>
+              <p className="text-[10px] text-slate-400 mt-0.5">Logs & weekly view</p>
+            </div>
+          </Link>
+
+          <Link to="/leave" className="glass-card rounded-2xl p-4 border border-slate-800 hover:border-purple-500/50 transition-all group flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                <CalendarDays className="w-4 h-4" />
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-purple-400 transition-colors" />
+            </div>
+            <div className="mt-3">
+              <h4 className="text-xs font-bold text-slate-100">Leave Requests</h4>
+              <p className="text-[10px] text-slate-400 mt-0.5">Apply & status</p>
+            </div>
+          </Link>
+
+          <Link to="/payroll" className="glass-card rounded-2xl p-4 border border-slate-800 hover:border-amber-500/50 transition-all group flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                <DollarSign className="w-4 h-4" />
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-amber-400 transition-colors" />
+            </div>
+            <div className="mt-3">
+              <h4 className="text-xs font-bold text-slate-100">My Payslips</h4>
+              <p className="text-[10px] text-slate-400 mt-0.5">Salary breakdown</p>
+            </div>
+          </Link>
+        </div>
+      </div>
+
       {/* Stat Cards - Leave Balances */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
           Leave Balances Summary
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

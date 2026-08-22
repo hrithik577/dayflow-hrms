@@ -11,6 +11,7 @@
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   #root {
@@ -18,6 +19,14 @@
     display: flex;
     flex-direction: column;
     background-color: #020617;
+    transition: background-color 0.2s ease;
+  }
+
+  /* Light mode base overrides */
+  html.light body,
+  html.light #root {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
   }
 }
 
@@ -31,9 +40,17 @@
   background: rgba(15, 23, 42, 0.6);
 }
 
+.light ::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.8);
+}
+
 ::-webkit-scrollbar-thumb {
   background: rgba(51, 65, 85, 0.8);
   border-radius: 9999px;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(203, 213, 225, 0.9);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -48,11 +65,25 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.light .glass-panel {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
 .glass-card {
   background: rgba(30, 41, 59, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.light .glass-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
 }
 
 .glass-card-hover {
@@ -71,8 +102,112 @@
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
 }
 
+.light .enterprise-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Background Color Overrides for Light Mode */
+.light .bg-slate-950 {
+  background-color: #f8fafc !important;
+}
+
+.light .bg-slate-950\/80,
+.light .bg-slate-950\/60,
+.light .bg-slate-950\/40 {
+  background-color: rgba(248, 250, 252, 0.95) !important;
+}
+
+.light .bg-slate-900 {
+  background-color: #ffffff !important;
+}
+
+.light .bg-slate-900\/80,
+.light .bg-slate-900\/60,
+.light .bg-slate-900\/50,
+.light .bg-slate-900\/40 {
+  background-color: #f1f5f9 !important;
+}
+
+.light .bg-slate-800,
+.light .bg-slate-800\/80,
+.light .bg-slate-800\/60 {
+  background-color: #f1f5f9 !important;
+}
+
+.light .bg-slate-700 {
+  background-color: #e2e8f0 !important;
+}
+
+/* Border Color Overrides for Light Mode */
+.light .border-slate-800,
+.light .border-slate-800\/80,
+.light .border-slate-800\/60,
+.light .border-slate-800\/50 {
+  border-color: #e2e8f0 !important;
+}
+
+.light .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Text Color Overrides for Light Mode */
+.light .text-slate-100,
+.light .text-slate-200,
+.light .text-slate-50 {
+  color: #0f172a !important;
+}
+
+.light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Input / Select / Textarea Form Control Light Mode Overrides */
+.light input,
+.light select,
+.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.light select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Print styles for salary slip */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-salary-slip, #printable-salary-slip * {
+    visibility: visible;
+  }
+  #printable-salary-slip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
 }
 
 /* Smooth Fade In */

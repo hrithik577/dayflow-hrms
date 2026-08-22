@@ -211,7 +211,7 @@ export const AICopilotPage = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto flex flex-col min-h-[calc(100vh-5rem)]">
+    <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto flex flex-col min-h-[calc(100vh-5rem)]">
       {/* Header & Tabs */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>

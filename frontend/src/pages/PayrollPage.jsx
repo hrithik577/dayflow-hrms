@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Modal } from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
-import { DollarSign, Edit, Shield, CheckCircle } from 'lucide-react';
+import { DollarSign, Edit, Printer, FileText, Download, Building2, CheckCircle2 } from 'lucide-react';
 
 export const PayrollPage = () => {
   const [payrollData, setPayrollData] = useState([]);
@@ -15,6 +15,10 @@ export const PayrollPage = () => {
   const [editAllowances, setEditAllowances] = useState(0);
   const [editDeductions, setEditDeductions] = useState(0);
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // Payslip Slip View Modal
+  const [payslipModalOpen, setPayslipModalOpen] = useState(false);
+  const [payslipTarget, setPayslipTarget] = useState(null);
 
   const { isRole } = useAuth();
   const isHR = isRole('HR', 'ADMIN');
@@ -48,6 +52,11 @@ export const PayrollPage = () => {
     setEditModalOpen(true);
   };
 
+  const openPayslipModal = (pay) => {
+    setPayslipTarget(pay);
+    setPayslipModalOpen(true);
+  };
+
   const handleUpdatePayroll = async (e) => {
     e.preventDefault();
     if (!selectedPay) return;
@@ -68,25 +77,41 @@ export const PayrollPage = () => {
     }
   };
 
+  const handlePrintPayslip = () => {
+    window.print();
+  };
+
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-          <DollarSign className="w-6 h-6 text-emerald-400" />
-          {isHR ? 'Company Payroll Management' : 'My Salary & Compensation'}
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">Salary structures, allowances, deductions, and net payouts</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
+            <DollarSign className="w-6 h-6 text-emerald-400" />
+            {isHR ? 'Company Payroll Management' : 'My Salary & Compensation'}
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">Salary structures, allowances, deductions, and official payslips</p>
+        </div>
+
+        {!isHR && myPayroll && (
+          <button
+            onClick={() => openPayslipModal(myPayroll)}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-2 self-start sm:self-auto"
+          >
+            <FileText className="w-4 h-4" />
+            Generate Payslip Statement
+          </button>
+        )}
       </div>
 
       {!isHR && myPayroll && (
         <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4">
             <div>
               <h2 className="text-xl font-extrabold text-slate-100">{myPayroll.employee_name}</h2>
               <p className="text-xs text-slate-400">{myPayroll.designation} • {myPayroll.department_name}</p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <span className="text-xs text-slate-400 uppercase font-semibold">Net Salary Payout</span>
               <h3 className="text-3xl font-black text-emerald-400 mt-0.5">
                 ${myPayroll.net_salary.toLocaleString()} <span className="text-xs font-normal text-slate-400">USD/mo</span>
@@ -119,7 +144,7 @@ export const PayrollPage = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
+            <table className="w-full text-left text-xs text-slate-300 min-w-[700px]">
               <thead className="bg-slate-900/80 border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                 <tr>
                   <th className="px-6 py-4">Employee</th>
@@ -150,12 +175,19 @@ export const PayrollPage = () => {
                       <td className="px-6 py-4 font-mono text-emerald-400">+${p.allowances.toLocaleString()}</td>
                       <td className="px-6 py-4 font-mono text-rose-400">-${p.deductions.toLocaleString()}</td>
                       <td className="px-6 py-4 font-mono font-bold text-slate-100">${p.net_salary.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right space-x-2">
+                        <button
+                          onClick={() => openPayslipModal(p)}
+                          className="px-2.5 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-medium transition-colors inline-flex items-center gap-1 border border-blue-500/20"
+                          title="Generate Salary Slip"
+                        >
+                          <FileText className="w-3.5 h-3.5" /> Payslip
+                        </button>
                         <button
                           onClick={() => openEditModal(p)}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors inline-flex items-center gap-1"
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors inline-flex items-center gap-1"
                         >
-                          <Edit className="w-3.5 h-3.5" /> Edit Salary
+                          <Edit className="w-3.5 h-3.5" /> Edit
                         </button>
                       </td>
                     </tr>
@@ -166,6 +198,107 @@ export const PayrollPage = () => {
           </div>
         </div>
       )}
+
+      {/* Payslip View & Print Modal */}
+      <Modal isOpen={payslipModalOpen} onClose={() => setPayslipModalOpen(false)} title="Official Salary Slip Statement">
+        {payslipTarget && (
+          <div className="space-y-6 text-xs">
+            <div id="printable-salary-slip" className="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-slate-100 space-y-6">
+              {/* Header */}
+              <div className="flex justify-between items-start border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-white text-xl">
+                    D
+                  </div>
+                  <div>
+                    <h2 className="font-extrabold text-base tracking-tight text-white">DAYFLOW HRMS</h2>
+                    <p className="text-[11px] text-slate-400">Enterprise HR & Workforce Intelligence</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase font-bold text-blue-400 px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30">
+                    Salary Statement
+                  </span>
+                  <p className="text-xs text-slate-400 mt-1 font-mono">Month: August 2026</p>
+                </div>
+              </div>
+
+              {/* Employee Summary */}
+              <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Employee Name</p>
+                  <p className="text-sm font-bold text-slate-100">{payslipTarget.employee_name}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{payslipTarget.designation}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Department</p>
+                  <p className="text-sm font-bold text-slate-100">{payslipTarget.department_name}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Status: Active</p>
+                </div>
+              </div>
+
+              {/* Earnings & Deductions Breakdown */}
+              <div className="border border-slate-800 rounded-xl overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 uppercase font-semibold text-[10px]">
+                    <tr>
+                      <th className="p-3">Component Description</th>
+                      <th className="p-3 text-right">Amount (USD)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    <tr>
+                      <td className="p-3 font-medium text-slate-200">Basic Monthly Base Salary</td>
+                      <td className="p-3 text-right font-mono text-slate-100">${payslipTarget.basic_salary.toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-medium text-emerald-400">Housing & Transport Allowances</td>
+                      <td className="p-3 text-right font-mono text-emerald-400">+${payslipTarget.allowances.toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-medium text-rose-400">Tax & Provident Fund Deductions</td>
+                      <td className="p-3 text-right font-mono text-rose-400">-${payslipTarget.deductions.toLocaleString()}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot className="bg-slate-950 font-bold border-t border-slate-800">
+                    <tr>
+                      <td className="p-3 text-slate-100 text-sm">Total Net Salary Payout</td>
+                      <td className="p-3 text-right font-mono text-emerald-400 text-base">
+                        ${payslipTarget.net_salary.toLocaleString()} USD
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Footer Note */}
+              <div className="flex justify-between items-center text-[10px] text-slate-400 pt-2 border-t border-slate-800">
+                <span>System Generated Payslip • Dayflow HRMS 2026</span>
+                <span className="flex items-center gap-1 text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Verified & Approved
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setPayslipModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={handlePrintPayslip}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-600/30"
+              >
+                <Printer className="w-4 h-4" /> Print / Save Payslip PDF
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Edit Payroll Modal */}
       <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} title={`Update Salary Structure: ${selectedPay?.employee_name}`}>

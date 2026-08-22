@@ -58,18 +58,43 @@ def tool_get_employee_attendance(db: Session, current_user: User, employee_id: O
     ).order_by(Attendance.date.desc()).limit(days).all()
 
     att_list = []
+    present_count = 0
+    late_count = 0
+    absent_count = 0
+    on_leave_count = 0
+    total_hours = 0.0
+
     for r in records:
+        st = r.status.value if hasattr(r.status, 'value') else str(r.status)
+        if st == "PRESENT":
+            present_count += 1
+        elif st == "LATE":
+            late_count += 1
+            present_count += 1
+        elif st == "ABSENT":
+            absent_count += 1
+        elif st == "LEAVE":
+            on_leave_count += 1
+
+        hrs = r.working_hours or 0.0
+        total_hours += hrs
+
         att_list.append({
             "date": str(r.date),
             "check_in": r.check_in.strftime("%H:%M:%S") if r.check_in else None,
             "check_out": r.check_out.strftime("%H:%M:%S") if r.check_out else None,
-            "status": r.status.value if hasattr(r.status, 'value') else str(r.status),
-            "working_hours": r.working_hours
+            "status": st,
+            "working_hours": hrs
         })
 
     return {
         "employee_name": f"{emp.first_name} {emp.last_name}",
         "record_count": len(att_list),
+        "present_count": present_count,
+        "late_count": late_count,
+        "absent_count": absent_count,
+        "on_leave_count": on_leave_count,
+        "total_working_hours": round(total_hours, 1),
         "attendance_records": att_list,
         "source": "attendance table"
     }

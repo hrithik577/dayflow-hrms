@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Sparkles, Shield, User, UserCheck } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { LogIn, Sparkles, Shield, User, UserCheck, Sun, Moon } from 'lucide-react';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -31,7 +33,28 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 relative overflow-hidden transition-colors">
+      {/* Top Bar Theme Switcher */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={toggleTheme}
+          className="p-2.5 rounded-xl border border-slate-800 bg-slate-900/80 text-amber-400 hover:text-amber-300 hover:bg-slate-800 transition-colors flex items-center gap-2 text-xs font-medium"
+          title={`Switch to ${theme === 'dark' ? 'White Theme' : 'Dark Theme'}`}
+        >
+          {theme === 'dark' ? (
+            <>
+              <Sun className="w-4 h-4 text-amber-400" />
+              <span className="text-slate-300 text-xs">White Theme</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-4 h-4 text-indigo-500" />
+              <span className="text-slate-700 text-xs">Dark Theme</span>
+            </>
+          )}
+        </button>
+      </div>
+
       {/* Glow Effects */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -46,7 +69,7 @@ export const Login = () => {
         </div>
 
         {/* Card */}
-        <div className="glass-panel rounded-2xl p-8 shadow-2xl border border-slate-800">
+        <div className="glass-panel rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-800">
           <h2 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
             <LogIn className="w-5 h-5 text-blue-400" />
             Sign in to Platform
@@ -90,7 +113,7 @@ export const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-all shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs transition-all shadow-lg shadow-blue-600/30 disabled:opacity-50"
             >
               {loading ? 'Authenticating...' : 'Sign In'}
             </button>
@@ -140,7 +163,7 @@ export const Login = () => {
         </div>
 
         <p className="text-center text-xs text-slate-500">
-          Need an account? <Link to="/signup" className="text-blue-400 hover:underline">Register here</Link>
+          Need an account? <Link to="/signup" className="text-blue-400 hover:underline font-medium">Register here</Link>
         </p>
       </div>
     </div>
