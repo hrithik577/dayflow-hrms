@@ -77,7 +77,13 @@ Dayflow goes beyond traditional CRUD HRMS products. It is an **AI-native HR oper
 
 ## ⚡ Quick Start & Installation
 
-### 1. Backend Setup & Seeding
+### 1. Environment Setup
+```bash
+# Copy environment template
+cp .env.example .env
+```
+
+### 2. Backend Setup & Seeding
 ```bash
 # Install Python backend dependencies
 pip install -r backend/requirements.txt
@@ -89,7 +95,7 @@ python3 backend/seed.py
 python3 backend/run.py
 ```
 
-### 2. Frontend Setup
+### 3. Frontend Setup
 ```bash
 # Navigate to the frontend directory
 cd frontend
@@ -119,6 +125,6 @@ Click any of the **1-Click Demo Profile Buttons** in the top bar / login screen:
 
 ## 👥 Team Contributions
 
-- **Member 1 (Hrithik — Data Platform)**: PostgreSQL database schema, SQLAlchemy ORM models, Alembic migrations, database repositories, seed generator script, SQLite fallback connector.
-- **Member 2 (Lakshminarayana — UI/UX & Dashboards)**: Enterprise React design system, Executive Command Center dashboard, Employee punch portal, Recharts visualizations, AI Copilot drawer, custom UI components, responsive layout.
-- **Member 3 (Harsha — AI Workflows & Security)**: JWT authentication, RBAC authorization middleware, AI Guardrail engine, Smart Leave Intelligence calculator, attendance anomaly engine, audit log service, WebSocket real-time event hub.
+- **Hrithik (Data Platform)**: PostgreSQL database schema, SQLAlchemy ORM models, Alembic migrations, database repositories, seed generator script, SQLite fallback connector.
+- **Lakshminarayana (UI/UX & Dashboards)**: Enterprise React design system, Executive Command Center dashboard, Employee punch portal, Recharts visualizations, AI Copilot drawer, custom UI components, responsive layout.
+- **Harshavardhan (AI Workflows & Security)**: JWT authentication, RBAC authorization middleware, AI Guardrail engine, Smart Leave Intelligence calculator, attendance anomaly engine, audit log service, WebSocket real-time event hub.
