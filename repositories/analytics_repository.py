@@ -1,2 +1,3 @@
-# DAYFLOW Module Placeholder
-# TODO: Implementation pending
+from app.repositories.analytics_repository import AnalyticsRepository
+
+__all__ = ["AnalyticsRepository"]

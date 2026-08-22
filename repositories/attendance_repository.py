@@ -1,2 +1,3 @@
-# DAYFLOW Module Placeholder
-# TODO: Implementation pending
+from app.repositories.attendance_repository import AttendanceRepository
+
+__all__ = ["AttendanceRepository"]
