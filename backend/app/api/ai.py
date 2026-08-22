@@ -5,13 +5,23 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User, UserRole
 from app.models.ai import AIInsight, AIEvent
-from app.schemas.ai import AIQueryRequest, AIQueryResponse, AIActionRequest, AIInsightOut, AIEventOut
+from app.schemas.ai import (
+    AIQueryRequest, AIQueryResponse, AIActionRequest, AIInsightOut, AIEventOut,
+    ResumeScreeningRequest, ResumeScreeningResponse,
+    ExplainableDecisionRequest, ExplainableDecisionResponse,
+    PerformancePredictionResponse,
+    ChatbotQueryRequest, ChatbotQueryResponse
+)
 from app.services.auth_service import get_current_user, require_roles
 from app.services.audit_service import log_audit_event
 from app.ai.copilot import process_ai_query
 from app.ai.tools import APPROVED_AI_TOOLS
+from app.ai.resume_screener import screen_resume_and_match
+from app.ai.explainable_ai import generate_hr_decision_explanation
+from app.ai.performance_predictor import predict_employee_performance
+from app.ai.chatbot import handle_employee_chatbot_query
 
-router = APIRouter(prefix="/api/ai", tags=["AI Copilot"])
+router = APIRouter(prefix="/api/ai", tags=["AI Copilot & Workflows"])
 
 @router.post("/query", response_model=AIQueryResponse)
 def query_ai_copilot(
@@ -145,3 +155,42 @@ def get_ai_events(
             created_at=e.created_at
         ))
     return result
+
+# ---------------------------------------------------------
+# NEW AI WORKFLOW ENDPOINTS (TASK 1 - 4)
+# ---------------------------------------------------------
+
+@router.post("/resume-screening", response_model=ResumeScreeningResponse)
+def screen_resume(
+    req: ResumeScreeningRequest,
+    current_user: User = Depends(require_roles([UserRole.HR, UserRole.ADMIN]))
+):
+    """1. AI-Powered Resume Screening and Job Matching"""
+    return screen_resume_and_match(req)
+
+@router.post("/explain-decision", response_model=ExplainableDecisionResponse)
+def explain_hr_decision(
+    req: ExplainableDecisionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """2. Explainable AI Features for HR Decisions"""
+    return generate_hr_decision_explanation(db, req)
+
+@router.get("/performance-prediction/{employee_id}", response_model=PerformancePredictionResponse)
+def get_performance_prediction(
+    employee_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles([UserRole.HR, UserRole.ADMIN]))
+):
+    """3. Employee Performance & Risk Prediction Models"""
+    return predict_employee_performance(db, employee_id)
+
+@router.post("/chatbot", response_model=ChatbotQueryResponse)
+def chatbot_query(
+    req: ChatbotQueryRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """4. AI Chatbot Engine for Employee Queries"""
+    return handle_employee_chatbot_query(db, current_user, req)
