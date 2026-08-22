@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column('email', sa.String(length=255), nullable=False),
         sa.Column('password_hash', sa.String(length=255), nullable=False),
         sa.Column('role', sa.String(length=50), nullable=False, server_default='EMPLOYEE'),
-        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint('id')
@@ -110,7 +110,7 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=100), nullable=False),
         sa.Column('code', sa.String(length=20), nullable=False),
         sa.Column('max_days_per_year', sa.Integer(), nullable=False, server_default='12'),
-        sa.Column('is_paid', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+        sa.Column('is_paid', sa.Boolean(), nullable=False, server_default=sa.text('true')),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
@@ -215,7 +215,7 @@ def upgrade() -> None:
         sa.Column('title', sa.String(length=255), nullable=False),
         sa.Column('message', sa.Text(), nullable=False),
         sa.Column('type', sa.String(length=50), nullable=False, server_default='INFO'),
-        sa.Column('is_read', sa.Boolean(), nullable=False, server_default=sa.text('0')),
+        sa.Column('is_read', sa.Boolean(), nullable=False, server_default=sa.text('false')),
         sa.Column('link', sa.String(length=255), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
@@ -260,7 +260,7 @@ def upgrade() -> None:
         sa.Column('decision', sa.Text(), nullable=True),
         sa.Column('confidence', sa.Float(), nullable=True),
         sa.Column('guardrail_status', sa.String(length=50), nullable=False, server_default='PASSED'),
-        sa.Column('human_approval_required', sa.Boolean(), nullable=False, server_default=sa.text('0')),
+        sa.Column('human_approval_required', sa.Boolean(), nullable=False, server_default=sa.text('false')),
         sa.Column('human_approved', sa.Boolean(), nullable=True),
         sa.Column('tool_name', sa.String(length=100), nullable=True),
         sa.Column('tool_result_reference', sa.String(length=255), nullable=True),
@@ -282,7 +282,7 @@ def upgrade() -> None:
         sa.Column('description', sa.Text(), nullable=False),
         sa.Column('metrics_json', sa.Text(), nullable=True),
         sa.Column('severity', sa.String(length=50), nullable=False, server_default='INFO'),
-        sa.Column('is_dismissed', sa.Boolean(), nullable=False, server_default=sa.text('0')),
+        sa.Column('is_dismissed', sa.Boolean(), nullable=False, server_default=sa.text('false')),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint('id')
     )
@@ -332,7 +332,7 @@ def upgrade() -> None:
         sa.Column('content', sa.Text(), nullable=False),
         sa.Column('version', sa.String(length=20), nullable=False, server_default='1.0'),
         sa.Column('effective_date', sa.Date(), nullable=False),
-        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint('id')

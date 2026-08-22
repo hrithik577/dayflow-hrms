@@ -3,8 +3,9 @@ import os
 from datetime import date, datetime, timedelta, time
 import random
 
-# Ensure app package is importable
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Ensure local app package takes precedence over global site-packages
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.core.database import engine, Base, SessionLocal
 from app.core.security import get_password_hash
@@ -21,13 +22,18 @@ from app.models.ai import AIInsight, AIEvent, AttendanceAnomaly
 def seed_database():
     print("🌱 Initializing Dayflow Database Seed...")
     
-    # Re-create clean tables
-    Base.metadata.drop_all(bind=engine)
+    # Ensure tables exist without dropping existing data
     Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
 
     try:
+        # Check if database is already seeded
+        existing_user = db.query(User).first()
+        if existing_user:
+            print("  ℹ Database already contains seeded data. Skipping seed generation to protect existing data.")
+            return
+
         # 1. Create Departments
         print("  - Creating Departments...")
         departments_data = [
@@ -40,22 +46,27 @@ def seed_database():
         
         departments = {}
         for d in departments_data:
-            dept = Department(name=d["name"], code=d["code"])
-            db.add(dept)
-            db.commit()
-            db.refresh(dept)
-            departments[d["name"]] = dept
+            existing_dept = db.query(Department).filter(Department.code == d["code"]).first()
+            if not existing_dept:
+                existing_dept = Department(name=d["name"], code=d["code"])
+                db.add(existing_dept)
+                db.commit()
+                db.refresh(existing_dept)
+            departments[d["name"]] = existing_dept
 
         # 2. Create Leave Types
         print("  - Creating Leave Types...")
         leave_types = [
-            LeaveType(name="Paid Annual Leave", code="PAID", annual_limit=18, description="Standard paid vacation leave"),
-            LeaveType(name="Sick Leave", code="SICK", annual_limit=12, description="Medical and health leave"),
-            LeaveType(name="Casual Leave", code="CASUAL", annual_limit=8, description="Short notice personal leave"),
-            LeaveType(name="Unpaid Leave", code="UNPAID", annual_limit=30, description="Leave without pay"),
+            {"name": "Paid Annual Leave", "code": "PAID", "max_days_per_year": 18, "description": "Standard paid vacation leave"},
+            {"name": "Sick Leave", "code": "SICK", "max_days_per_year": 12, "description": "Medical and health leave"},
+            {"name": "Casual Leave", "code": "CASUAL", "max_days_per_year": 8, "description": "Short notice personal leave"},
+            {"name": "Unpaid Leave", "code": "UNPAID", "max_days_per_year": 30, "description": "Leave without pay"},
         ]
-        for lt in leave_types:
-            db.add(lt)
+        for lt_data in leave_types:
+            existing_lt = db.query(LeaveType).filter(LeaveType.code == lt_data["code"]).first()
+            if not existing_lt:
+                existing_lt = LeaveType(**lt_data)
+                db.add(existing_lt)
         db.commit()
         
         lt_map = {lt.code: lt for lt in db.query(LeaveType).all()}
