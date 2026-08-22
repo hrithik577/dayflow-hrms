@@ -185,7 +185,19 @@ def signup(req: UserRegister, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(req: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == req.email.lower()).first()
+    email_clean = req.email.strip().lower()
+    
+    # Support friendly demo email aliases
+    email_aliases = {
+        "hr1@dayflow.com": "hr.sarah@dayflow.com",
+        "aarav.sharma1@dayflow.com": "rahul.sharma@dayflow.com",
+        "aarav.sharma@dayflow.com": "rahul.sharma@dayflow.com",
+        "employee@dayflow.com": "rahul.sharma@dayflow.com",
+        "hr@dayflow.com": "hr.sarah@dayflow.com",
+    }
+    target_email = email_aliases.get(email_clean, email_clean)
+    
+    user = db.query(User).filter(User.email == target_email).first()
     if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
