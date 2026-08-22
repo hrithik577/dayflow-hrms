@@ -3,9 +3,13 @@ import os
 from datetime import date, datetime, timedelta, time
 import random
 
-# Ensure local app package takes precedence over global site-packages
+# Ensure app package is importable
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from app.core.database import engine, Base, SessionLocal
 from app.core.security import get_password_hash
