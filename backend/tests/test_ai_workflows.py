@@ -2,10 +2,11 @@ import os
 import sys
 import pytest
 
-# Ensure backend directory is in sys.path
+# Insert backend directory BEFORE workspace root in sys.path
 backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
+if backend_path in sys.path:
+    sys.path.remove(backend_path)
+sys.path.insert(0, backend_path)
 
 from fastapi.testclient import TestClient
 from app.main import app
@@ -27,10 +28,10 @@ def setup_database():
 
 def get_tokens():
     res = client.post("/api/auth/login", json={"email": "hr.sarah@dayflow.com", "password": "HR@123"})
-    hr_token = res.json()["access_token"]
+    hr_token = res.json().get("access_token")
     
     res = client.post("/api/auth/login", json={"email": "rahul.sharma@dayflow.com", "password": "Emp@123"})
-    emp_token = res.json()["access_token"]
+    emp_token = res.json().get("access_token")
     
     return {"Authorization": f"Bearer {hr_token}"}, {"Authorization": f"Bearer {emp_token}"}
 

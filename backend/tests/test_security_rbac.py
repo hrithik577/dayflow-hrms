@@ -2,10 +2,10 @@ import os
 import sys
 import pytest
 
-# Ensure backend directory is in sys.path
-backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
+backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if backend_dir in sys.path:
+    sys.path.remove(backend_dir)
+sys.path.insert(0, backend_dir)
 
 from fastapi.testclient import TestClient
 from app.main import app
@@ -42,7 +42,7 @@ def test_security_rbac_and_ai_guardrails():
     # RBAC TEST 1: EMPLOYEE cannot access company payroll
     # ----------------------------------------------------
     res = client.get("/api/payroll", headers=emp_headers)
-    assert res.status_code == 403, f"Expected 403 Forbidden for Employee accessing /api/payroll, got {res.status_code}"
+    assert res.status_code == 403, f"Expected 403 Forbidden for Employee accessing payroll, got {res.status_code}"
 
     # HR can access company payroll
     res = client.get("/api/payroll", headers=hr_headers)
@@ -52,7 +52,7 @@ def test_security_rbac_and_ai_guardrails():
     # RBAC TEST 2: EMPLOYEE cannot access system audit logs
     # ----------------------------------------------------
     res = client.get("/api/audit", headers=emp_headers)
-    assert res.status_code == 403, f"Expected 403 Forbidden for Employee accessing /api/audit, got {res.status_code}"
+    assert res.status_code == 403, f"Expected 403 Forbidden for Employee accessing audit, got {res.status_code}"
 
     # HR can access audit logs
     res = client.get("/api/audit", headers=hr_headers)
