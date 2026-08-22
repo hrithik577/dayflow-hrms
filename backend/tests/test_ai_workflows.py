@@ -2,11 +2,10 @@ import os
 import sys
 import pytest
 
-# Insert backend directory BEFORE workspace root in sys.path
-backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if backend_path in sys.path:
-    sys.path.remove(backend_path)
-sys.path.insert(0, backend_path)
+backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if backend_dir in sys.path:
+    sys.path.remove(backend_dir)
+sys.path.insert(0, backend_dir)
 
 from fastapi.testclient import TestClient
 from app.main import app
