@@ -57,7 +57,7 @@ Dayflow goes beyond traditional CRUD HRMS products. It is an **AI-native HR oper
                      │ AI GUARDRAIL ENGINE│  │ ANALYTICS ENGINE │  │   AUDIT ENGINE    │
                      │  Scope & Security │  │ Anomalies & Risk │  │ Event Persistence │
                      └──────────┬────────┘  └─────────┬────────┘  └─────────┬─────────┘
-                                │                     │ font-sans            │
+                                │                     │                      │
                                 └─────────────────────┼──────────────────────┘
                                                       ▼
                           ┌────────────────────────────────────────────────────────┐
@@ -79,9 +79,6 @@ Dayflow goes beyond traditional CRUD HRMS products. It is an **AI-native HR oper
 
 ### 1. Environment Setup
 ```bash
-# Clone or navigate to the repository
-cd "/Users/harshajaggi/odoo harsha"
-
 # Copy environment template
 cp .env.example .env
 ```
@@ -101,7 +98,7 @@ python3 backend/run.py
 ### 3. Frontend Setup
 ```bash
 # Open a new terminal in the frontend directory
-cd "/Users/harshajaggi/odoo harsha/frontend"
+cd frontend
 
 # Install frontend dependencies
 npm install
@@ -126,18 +123,8 @@ Click any of the **1-Click Demo Profile Buttons** on the login screen:
 
 ---
 
-## 🧪 Running Integration Tests
-
-To run the automated end-to-end backend test suite:
-
-```bash
-python3 backend/tests/test_end_to_end.py
-```
-
----
-
 ## 👥 Team Contributions
 
-- **Member 1 (Data & Platform)**: PostgreSQL database schema, SQLAlchemy ORM models, seed generator script, SQLite fallback connector, database query repositories.
-- **Member 2 (Experience & Design)**: React Vite frontend, enterprise dark glass design system, Command Center dashboard, Recharts analytics, AI Copilot drawer, custom UI components.
-- **Member 3 (Intelligence & Security)**: JWT authentication, RBAC authorization middleware, AI Guardrail engine, Smart Leave Intelligence calculator, attendance anomaly engine, audit log service, WebSocket real-time event hub.
+- **Hrithik (Data & Platform)**: PostgreSQL database schema, SQLAlchemy ORM models, seed generator script, SQLite fallback connector, database query repositories.
+- **Lakshminarayana (Experience & Design)**: React Vite frontend, enterprise dark glass design system, Command Center dashboard, Recharts analytics, AI Copilot drawer, custom UI components.
+- **Harshavardhan (Intelligence & Security)**: JWT authentication, RBAC authorization middleware, AI Guardrail engine, Smart Leave Intelligence calculator, attendance anomaly engine, audit log service, WebSocket real-time event hub.

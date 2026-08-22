@@ -21,6 +21,8 @@ wheels/
 .installed.cfg
 *.egg
 .pytest_cache/
+.coverage
+htmlcov/
 
 # Environments
 .env
@@ -43,6 +45,7 @@ frontend/dist-ssr/
 
 # IDE & OS
 .DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
