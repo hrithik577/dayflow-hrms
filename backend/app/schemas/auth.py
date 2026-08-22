@@ -41,7 +41,7 @@ class TokenResponse(BaseModel):
 
 class UserOut(BaseModel):
     id: int
-    employee_id: str
+    employee_id: Optional[str] = None
     email: str
     role: str
     email_verified: bool
