@@ -1,12 +1,15 @@
+import uuid
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User, UserRole
 from app.models.ai import AIInsight, AIEvent
-from app.schemas.ai import AIQueryRequest, AIQueryResponse, AIInsightOut, AIEventOut
+from app.schemas.ai import AIQueryRequest, AIQueryResponse, AIActionRequest, AIInsightOut, AIEventOut
 from app.services.auth_service import get_current_user, require_roles
+from app.services.audit_service import log_audit_event
 from app.ai.copilot import process_ai_query
+from app.ai.tools import APPROVED_AI_TOOLS
 
 router = APIRouter(prefix="/api/ai", tags=["AI Copilot"])
 
@@ -21,6 +24,75 @@ def query_ai_copilot(
 
     response = process_ai_query(db=db, user=current_user, prompt=req.prompt.strip())
     return response
+
+@router.post("/action")
+def execute_ai_action(
+    req: AIActionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    tool_func = APPROVED_AI_TOOLS.get(req.tool_name)
+    if not tool_func:
+        raise HTTPException(status_code=400, detail=f"Unrecognized or unapproved AI tool '{req.tool_name}'")
+
+    user_role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    # Sensitive action human approval guard
+    sensitive_tools = ["approve_leave_request", "reject_leave_request", "get_payroll_summary", "get_audit_events"]
+    if req.tool_name in sensitive_tools and user_role == "EMPLOYEE":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Forbidden: Employees are restricted from executing administrative tool '{req.tool_name}'"
+        )
+
+    request_id = f"action-{uuid.uuid4().hex[:8]}"
+    args = req.arguments or {}
+
+    try:
+        res = tool_func(db=db, current_user=current_user, **args)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to execute AI tool '{req.tool_name}': {str(e)}")
+
+    if isinstance(res, dict) and res.get("blocked"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=res.get("error", "Action blocked by security policy"))
+
+    # Log AI Event
+    ai_evt = AIEvent(
+        request_id=request_id,
+        user_id=current_user.id,
+        agent_name="Dayflow AI Action Dispatcher",
+        action_type="AI_ACTION",
+        input_summary=f"Executed tool '{req.tool_name}' with args {args}",
+        data_sources="approved_ai_tool_registry",
+        decision=str(res)[:200],
+        confidence=1.0,
+        guardrail_status="ALLOWED",
+        human_approval_required="TRUE" if req.tool_name in sensitive_tools else "FALSE",
+        human_approved="TRUE" if user_role in ["HR", "ADMIN"] else "FALSE",
+        tool_name=req.tool_name,
+        tool_result_reference=str(res)[:300]
+    )
+    db.add(ai_evt)
+    db.commit()
+
+    # Log Audit Log
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        role=user_role,
+        action="AI_TOOL_EXECUTION",
+        entity_type="AI_ACTION",
+        entity_id=request_id,
+        new_value=f"Executed {req.tool_name}"
+    )
+
+    return {
+        "status": "SUCCESS",
+        "request_id": request_id,
+        "tool_name": req.tool_name,
+        "human_approved": user_role in ["HR", "ADMIN"],
+        "result": res
+    }
 
 @router.get("/insights", response_model=List[AIInsightOut])
 def get_ai_insights(

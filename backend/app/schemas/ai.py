@@ -5,10 +5,17 @@ from datetime import datetime
 class AIQueryRequest(BaseModel):
     prompt: str
 
+class AIActionRequest(BaseModel):
+    tool_name: str
+    arguments: Optional[dict] = {}
+
 class AIQueryResponse(BaseModel):
     answer: str
+    evidence: Optional[Any] = None
     sources: List[str]
     confidence: float
+    recommendation: Optional[str] = None
+    action_available: Optional[Any] = None
     guardrail_status: str # ALLOWED or BLOCKED
     tool_used: Optional[str] = None
     data_evidence: Optional[Any] = None
