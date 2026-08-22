@@ -60,20 +60,21 @@ def seed_database():
 
         # 2. Create Leave Types
         print("  - Creating Leave Types...")
-        leave_types = [
-            {"name": "Paid Annual Leave", "code": "PAID", "max_days_per_year": 18, "description": "Standard paid vacation leave"},
-            {"name": "Sick Leave", "code": "SICK", "max_days_per_year": 12, "description": "Medical and health leave"},
-            {"name": "Casual Leave", "code": "CASUAL", "max_days_per_year": 8, "description": "Short notice personal leave"},
-            {"name": "Unpaid Leave", "code": "UNPAID", "max_days_per_year": 30, "description": "Leave without pay"},
+        leave_types_data = [
+            {"name": "Paid Annual Leave", "code": "PAID", "annual_limit": 18, "description": "Standard paid vacation leave"},
+            {"name": "Sick Leave", "code": "SICK", "annual_limit": 12, "description": "Medical and health leave"},
+            {"name": "Casual Leave", "code": "CASUAL", "annual_limit": 8, "description": "Short notice personal leave"},
+            {"name": "Unpaid Leave", "code": "UNPAID", "annual_limit": 30, "description": "Leave without pay"},
         ]
-        for lt_data in leave_types:
+        for lt_data in leave_types_data:
             existing_lt = db.query(LeaveType).filter(LeaveType.code == lt_data["code"]).first()
             if not existing_lt:
                 existing_lt = LeaveType(**lt_data)
                 db.add(existing_lt)
         db.commit()
         
-        lt_map = {lt.code: lt for lt in db.query(LeaveType).all()}
+        all_leave_types = db.query(LeaveType).all()
+        lt_map = {lt.code: lt for lt in all_leave_types}
 
         # 3. Create Admin User & Profile
         print("  - Creating Admin & HR Accounts...")
@@ -238,7 +239,7 @@ def seed_database():
             db.add(pay)
 
             # Assign Leave Balances
-            for lt in leave_types:
+            for lt in all_leave_types:
                 lb = LeaveBalance(
                     employee_id=emp.id,
                     leave_type_id=lt.id,

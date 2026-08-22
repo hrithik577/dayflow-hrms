@@ -9,6 +9,10 @@ class EmploymentStatus(str, enum.Enum):
     PROBATION = "PROBATION"
     TERMINATED = "TERMINATED"
     ON_LEAVE = "ON_LEAVE"
+    FULL_TIME = "FULL_TIME"
+    PART_TIME = "PART_TIME"
+    CONTRACT = "CONTRACT"
+    INTERN = "INTERN"
 
 class Employee(Base):
     __tablename__ = "employees"

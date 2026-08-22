@@ -125,6 +125,8 @@ def signup(req: UserRegister, db: Session = Depends(get_db)):
         role_enum = UserRole.HR
     elif req.role.upper() == "ADMIN":
         role_enum = UserRole.ADMIN
+    elif req.role.upper() == "MANAGER":
+        role_enum = UserRole.MANAGER
 
     new_user = User(
         employee_id=emp_id_code,

@@ -11,7 +11,10 @@ class EmploymentStatus(str, enum.Enum):
     PART_TIME = "PART_TIME"
     CONTRACT = "CONTRACT"
     INTERN = "INTERN"
+    ACTIVE = "ACTIVE"
+    PROBATION = "PROBATION"
     TERMINATED = "TERMINATED"
+    ON_LEAVE = "ON_LEAVE"
 
 
 def utc_now():
