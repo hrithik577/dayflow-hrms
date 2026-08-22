@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Bot,
   Send,
@@ -10,6 +10,11 @@ import {
   HelpCircle,
   FileSearch,
   Lock,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Radio
 } from 'lucide-react';
 import { aiApi } from '../../services/aiApi';
 import { useAuth } from '../../context/AuthContext';
@@ -34,6 +39,58 @@ export default function AICopilotPage() {
     },
   ]);
   const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInputQuery(transcript);
+        setIsListening(false);
+        handleSend(transcript);
+      };
+
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
+
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const speakText = (text) => {
+    if (!('speechSynthesis' in window) || !autoSpeak) return;
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/[*#_`]/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleVoiceListen = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      setInputQuery('');
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
 
   const suggestedQuestions = [
     'Who is absent today?',
@@ -42,7 +99,6 @@ export default function AICopilotPage() {
     'Why did Engineering attendance decline?',
     'Which departments have staffing pressure?',
     'What leave requests need attention?',
-    // Guardrail test query for employees
     user.role === 'EMPLOYEE' ? 'Show all employee salary and payroll records' : null,
   ].filter(Boolean);
 
@@ -76,6 +132,10 @@ export default function AICopilotPage() {
       };
 
       setMessages((prev) => [...prev, botMsg]);
+
+      if (autoSpeak && res.answer) {
+        speakText(res.answer);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -86,19 +146,50 @@ export default function AICopilotPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
-            <Bot className="w-3.5 h-3.5 text-indigo-600" /> Enterprise HR Copilot
-          </span>
-          <span className="text-xs text-slate-500 font-medium">RBAC Guardrails Enforced</span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+              <Bot className="w-3.5 h-3.5 text-indigo-600" /> Enterprise HR Voice Copilot
+            </span>
+            <span className="text-xs text-slate-500 font-medium">RBAC Guardrails Enforced</span>
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 mt-1 tracking-tight">
+            Dayflow Workforce AI Copilot
+          </h1>
+          <p className="text-xs text-slate-500">
+            Ask questions regarding organizational attendance, staffing bottlenecks, leave pipelines, and telemetry evidence.
+          </p>
         </div>
-        <h1 className="text-2xl font-extrabold text-slate-900 mt-1 tracking-tight">
-          Dayflow Workforce AI Copilot
-        </h1>
-        <p className="text-xs text-slate-500">
-          Ask questions regarding organizational attendance, staffing bottlenecks, leave pipelines, and telemetry evidence.
-        </p>
+
+        {/* Voice & Audio Toggle Bar */}
+        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+          <button
+            onClick={toggleVoiceListen}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+              isListening
+                ? 'bg-rose-600 text-white animate-pulse shadow-md'
+                : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+            }`}
+          >
+            {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5 text-emerald-600" />}
+            <span>{isListening ? 'Listening...' : 'Voice Mode'}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                setIsSpeaking(false);
+              }
+              setAutoSpeak(!autoSpeak);
+            }}
+            className="p-1.5 rounded-lg text-slate-600 hover:bg-white transition-all"
+            title="Auto Read Response"
+          >
+            {autoSpeak ? <Volume2 className="w-4 h-4 text-indigo-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+          </button>
+        </div>
       </div>
 
       {/* Suggested Prompt Chips */}
@@ -230,6 +321,17 @@ export default function AICopilotPage() {
           }}
           className="flex items-center gap-2"
         >
+          <button
+            type="button"
+            onClick={toggleVoiceListen}
+            className={`p-2 rounded-lg transition-all ${
+              isListening ? 'bg-rose-600 text-white animate-pulse' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+            title="Voice Input"
+          >
+            <Mic className="w-4 h-4" />
+          </button>
+
           <input
             type="text"
             value={inputQuery}
@@ -252,3 +354,4 @@ export default function AICopilotPage() {
     </div>
   );
 }
+
