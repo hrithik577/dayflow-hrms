@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   body {
@@ -10,9 +12,16 @@
     padding: 0;
     -webkit-font-smoothing: antialiased;
   }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #020617;
+  }
 }
 
-/* Custom Scrollbars */
+/* Custom modern enterprise scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -31,15 +40,18 @@
   background: rgba(71, 85, 105, 1);
 }
 
+/* Glass Panels & Modern Cards */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.6);
-  backdrop-filter: blur(8px);
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -49,12 +61,35 @@
 
 .glass-card-hover:hover {
   border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.2);
 }
 
 .enterprise-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(51, 65, 85, 0.6);
   border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Smooth Fade In */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.03); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
 }
