@@ -1,58 +1,87 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import { authApi } from '../services/authApi';
+import { localDB } from '../services/apiClient';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('dayflow_token') || null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Initialize active user
   useEffect(() => {
-    const fetchMe = async () => {
-      if (token) {
-        try {
-          const res = await api.get('/api/auth/me');
-          setUser(res.data);
-        } catch (err) {
-          console.error("Failed to load user profile:", err);
-          logout();
-        }
+    async function initUser() {
+      try {
+        const db = localDB.get();
+        const storedId = localStorage.getItem('dayflow_user_id') || 'EMP-1001';
+        const found = db.employees.find((e) => e.id === storedId) || db.employees[0];
+        setUser(found);
+      } catch (err) {
+        console.error('Failed to load user', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    };
-    fetchMe();
-  }, [token]);
+    }
+    initUser();
+  }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/api/auth/login', { email, password });
-    const { access_token, user: userData } = res.data;
-    localStorage.setItem('dayflow_token', access_token);
-    setToken(access_token);
-    setUser(userData);
-    return userData;
+    setError(null);
+    try {
+      const res = await authApi.login({ email, password });
+      setUser(res.user);
+      localStorage.setItem('dayflow_user_id', res.user.id);
+      return res.user;
+    } catch (err) {
+      setError(err.message || 'Login failed');
+      throw err;
+    }
   };
 
-  const signup = async (data) => {
-    const res = await api.post('/api/auth/signup', data);
-    const { access_token, user: userData } = res.data;
-    localStorage.setItem('dayflow_token', access_token);
-    setToken(access_token);
-    setUser(userData);
-    return userData;
+  const signup = async (userData) => {
+    setError(null);
+    try {
+      const res = await authApi.signup(userData);
+      setUser(res.user);
+      localStorage.setItem('dayflow_user_id', res.user.id);
+      return res.user;
+    } catch (err) {
+      setError(err.message || 'Signup failed');
+      throw err;
+    }
   };
 
   const logout = async () => {
-    try {
-      if (token) await api.post('/api/auth/logout');
-    } catch (e) {
-      // ignore
-    } finally {
-      localStorage.removeItem('dayflow_token');
-      setToken(null);
-      setUser(null);
+    await authApi.logout();
+    setUser(null);
+    localStorage.removeItem('dayflow_user_id');
+  };
+
+  // One-click persona switcher for evaluators and pair debugging
+  const switchUser = (employeeId) => {
+    const db = localDB.get();
+    const target = db.employees.find((e) => e.id === employeeId);
+    if (target) {
+      setUser(target);
+      localStorage.setItem('dayflow_user_id', target.id);
     }
   };
+
+  const updateUserProfile = (updatedData) => {
+    const db = localDB.get();
+    const index = db.employees.findIndex((e) => e.id === user.id);
+    if (index !== -1) {
+      db.employees[index] = { ...db.employees[index], ...updatedData };
+      localDB.save(db);
+      setUser(db.employees[index]);
+    }
+  };
+
+  const isAdmin = user?.role === 'ADMIN';
+  const isHR = user?.role === 'HR';
+  const isEmployee = user?.role === 'EMPLOYEE';
+  const isManagement = isAdmin || isHR;
 
   const isRole = (...roles) => {
     if (!user) return false;
@@ -60,10 +89,33 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, signup, logout, isRole, setUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        error,
+        login,
+        signup,
+        logout,
+        switchUser,
+        updateUserProfile,
+        isRole,
+        setUser,
+        isAdmin,
+        isHR,
+        isEmployee,
+        isManagement,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
