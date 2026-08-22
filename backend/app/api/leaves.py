@@ -8,7 +8,7 @@ from app.models.leave import LeaveRequest, LeaveBalance, LeaveType, LeaveRequest
 from app.models.employee import Employee
 from app.models.user import User, UserRole
 from app.models.audit import Notification
-from app.schemas.leave import LeaveRequestCreate, LeaveApprovalRequest, LeaveRejectionRequest, LeaveRequestOut, LeaveBalanceOut, LeaveTypeOut
+from app.schemas.leave import LeaveRequestCreate, LeaveRequestUpdate, LeaveApprovalRequest, LeaveRejectionRequest, LeaveRequestOut, LeaveBalanceOut, LeaveTypeOut
 from app.services.auth_service import get_current_user, require_roles
 from app.services.audit_service import log_audit_event
 from app.analytics.leave_intelligence import calculate_smart_leave_coverage
@@ -200,6 +200,76 @@ def list_all_leaves(
         ))
 
     return result
+
+@router.patch("/{leave_id}", response_model=LeaveRequestOut)
+def update_leave_request(
+    leave_id: int,
+    body: LeaveRequestUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    req = db.query(LeaveRequest).filter(LeaveRequest.id == leave_id).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Leave request not found")
+
+    user_role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role == "EMPLOYEE":
+        if not current_user.employee or current_user.employee.id != req.employee_id:
+            raise HTTPException(status_code=403, detail="Forbidden: You can only modify your own leave requests")
+        if req.status != LeaveRequestStatus.PENDING if hasattr(req, 'status') else False:
+            raise HTTPException(status_code=400, detail="Cannot modify a request that has already been reviewed")
+
+    if body.start_date:
+        req.start_date = body.start_date
+    if body.end_date:
+        req.end_date = body.end_date
+    if body.reason:
+        req.reason = body.reason
+
+    if req.start_date > req.end_date:
+        raise HTTPException(status_code=400, detail="Start date cannot be after end date")
+    req.total_days = (req.end_date - req.start_date).days + 1
+
+    db.commit()
+    db.refresh(req)
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        role=user_role,
+        action="UPDATE_LEAVE_REQUEST",
+        entity_type="LEAVE_REQUEST",
+        entity_id=str(req.id),
+        new_value=f"Updated leave dates: {req.start_date} to {req.end_date}, days: {req.total_days}"
+    )
+
+    emp = req.employee
+    coverage = calculate_smart_leave_coverage(
+        db=db,
+        employee_id=req.employee_id,
+        start_date=req.start_date,
+        end_date=req.end_date,
+        requested_days=req.total_days
+    )
+
+    return LeaveRequestOut(
+        id=req.id,
+        employee_id=req.employee_id,
+        employee_name=f"{emp.first_name} {emp.last_name}" if emp else "Unknown",
+        department_name=emp.department.name if emp and emp.department else "General",
+        leave_type_id=req.leave_type_id,
+        leave_type_name=req.leave_type.name if req.leave_type else "Leave",
+        start_date=req.start_date,
+        end_date=req.end_date,
+        total_days=req.total_days,
+        reason=req.reason,
+        status=req.status.value if hasattr(req.status, 'value') else str(req.status),
+        reviewed_by=req.reviewed_by,
+        reviewer_name=f"{req.reviewer.first_name} {req.reviewer.last_name}" if req.reviewer else None,
+        reviewer_comment=req.reviewer_comment,
+        created_at=req.created_at,
+        ai_coverage_assessment=coverage
+    )
 
 @router.post("/{leave_id}/approve", response_model=LeaveRequestOut)
 async def approve_leave(

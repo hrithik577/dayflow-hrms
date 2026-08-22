@@ -8,6 +8,11 @@ class LeaveRequestCreate(BaseModel):
     end_date: date
     reason: str
 
+class LeaveRequestUpdate(BaseModel):
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    reason: Optional[str] = None
+
 class LeaveApprovalRequest(BaseModel):
     reviewer_comment: Optional[str] = "Approved by HR"
 
